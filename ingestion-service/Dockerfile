@@ -8,7 +8,10 @@ COPY pyproject.toml ./
 
 RUN uv venv
 # Install from pyproject.toml
-RUN uv pip install --project ingestion-service  . 
+RUN uv pip install --system --project ingestion-service  . 
+
+# ✅ Verify uvicorn is installed and on $PATH
+RUN which uvicorn && uvicorn --version
 
 COPY app/ ./app/
 
