@@ -6,7 +6,9 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 
-RUN uv pip install
+RUN uv venv
+# Install from pyproject.toml
+RUN uv pip install --project ingestion-service  . 
 
 COPY app/ ./app/
 

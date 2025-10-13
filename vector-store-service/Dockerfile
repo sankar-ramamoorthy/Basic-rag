@@ -6,7 +6,10 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 
-RUN uv pip install
+
+RUN uv venv
+# Install from pyproject.toml
+RUN uv pip install --project vector-store-service . 
 
 COPY app/ ./app/
 
