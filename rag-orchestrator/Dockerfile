@@ -5,7 +5,6 @@ RUN pip install uv
 WORKDIR /app
 
 COPY pyproject.toml ./
-COPY uv.lock ./        # ✅ will silently skip if not present
 
 RUN uv pip install
 
