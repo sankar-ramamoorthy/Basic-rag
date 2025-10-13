@@ -1,3 +1,7 @@
+
+# Ignore Docker volumes
+volumes/
+
 # Python
 __pycache__/
 *.pyc
@@ -18,3 +22,6 @@ uv.lock
 # Docker
 *.log
 .env
+# Ignore Docker artifacts
+*.pid
+*.sock

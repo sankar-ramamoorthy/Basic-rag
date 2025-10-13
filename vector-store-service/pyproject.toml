@@ -1,0 +1,17 @@
+[project]
+name = "vector-store-service"
+version = "0.1.0"
+description = "Handles vector similarity search using pgvector"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "httpx",
+  "python-dotenv",
+  "pgvector",
+  "psycopg[binary]",  # PostgreSQL client
+  "supabase"
+]
+
+
+

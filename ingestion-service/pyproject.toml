@@ -1,0 +1,17 @@
+[project]
+name = "ingestion-service"
+version = "0.1.0"
+description = "Handles document ingestion, chunking, and embedding"
+requires-python = ">=3.10"
+dependencies = [
+  "fastapi",
+  "uvicorn[standard]",
+  "httpx",
+  "python-dotenv",
+  "sentence-transformers",
+  "tiktoken",
+  "supabase"
+]
+
+
+
