@@ -22,6 +22,8 @@ uv.lock
 # Docker
 *.log
 .env
+.env_sankar
+.env_backup
 # Ignore Docker artifacts
 *.pid
 *.sock
