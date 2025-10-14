@@ -1,75 +1,58 @@
 version: "3.9"
 
 services:
-  ######################
-  # 🚀 RAG Services
-  ######################
-
   ingestion:
-    build: ./ingestion-service
+    build:
+      context: .
+      dockerfile: ingestion-service/Dockerfile
     container_name: ingestion-service
-    ports:
-      - "8001:8000"
+    ports: ["8001:8000"]
     volumes:
       - ./ingestion-service:/app
       - ./common:/app/common
     env_file: .env
-    restart: unless-stopped
     networks: [ragnet]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    restart: unless-stopped
 
   vector-store:
-    build: ./vector-store-service
+    build:
+      context: .
+      dockerfile: vector-store-service/Dockerfile
     container_name: vector-store-service
-    ports:
-      - "8002:8000"
+    ports: ["8002:8000"]
     volumes:
       - ./vector-store-service:/app
       - ./common:/app/common
     env_file: .env
-    restart: unless-stopped
     networks: [ragnet]
     depends_on:
       db:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    restart: unless-stopped
 
   llm:
-    build: ./llm-service
+    build:
+      context: .
+      dockerfile: llm-service/Dockerfile
     container_name: llm-service
-    ports:
-      - "8003:8000"
+    ports: ["8003:8000"]
     volumes:
       - ./llm-service:/app
       - ./common:/app/common
     env_file: .env
-    restart: unless-stopped
     networks: [ragnet]
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    restart: unless-stopped
 
   orchestrator:
-    build: ./rag-orchestrator
+    build:
+      context: .
+      dockerfile: rag-orchestrator/Dockerfile
     container_name: rag-orchestrator
-    ports:
-      - "8004:8000"
+    ports: ["8004:8000"]
     volumes:
       - ./rag-orchestrator:/app
       - ./common:/app/common
     env_file: .env
-    restart: unless-stopped
-    networks: [ragnet]
     depends_on:
       ingestion:
         condition: service_healthy
@@ -77,32 +60,19 @@ services:
         condition: service_healthy
       llm:
         condition: service_healthy
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  ######################
-  # 🗃️ Supabase Backend
-  ######################
+    networks: [ragnet]
+    restart: unless-stopped
 
   db:
     image: supabase/postgres:15.1.0.117
     container_name: supabase-db
-    restart: unless-stopped
-    ports:
-      - "54322:5432"
+    ports: ["54322:5432"]
     volumes:
-      - ./volumes/db:/var/lib/postgresql/
+      - ./volumes/db:/var/lib/postgresql/data
       - ./volumes/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
-      PGDATA: /var/lib/postgresql/data
-      SUPABASE_REST_ENABLED: 'true'
-      SUPABASE_ANON_KEY: 'your-anon-key'
-      SUPABASE_SERVICE_ROLE_KEY: 'your-service-role-key'
     networks: [ragnet]
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
@@ -113,16 +83,14 @@ services:
   rest:
     image: postgrest/postgrest:v10.1.1
     container_name: supabase-rest
-    restart: unless-stopped
+    ports: ["3010:3000"]
     depends_on:
       db:
         condition: service_healthy
-    ports:
-      - "3010:3000"
     environment:
       PGRST_DB_URI: postgres://postgres:postgres@db:5432/postgres
       PGRST_DB_ANON_ROLE: anon
-      PGRST_JWT_SECRET: 'your-anon-key'
+      PGRST_JWT_SECRET: your-anon-key
     networks: [ragnet]
 
 networks:
