@@ -11,7 +11,8 @@ dependencies = [
   "sentence-transformers",
   "tiktoken",
   "supabase",
-  "openai"  
+  "openai"  ,
+  "python-multipart"
 ]
 
 
