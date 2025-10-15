@@ -1,8 +1,15 @@
 #main.py 
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
-from app.utils.chunking import chunk_text
-from app.utils.embedding import get_embedding
+#from app.utils.chunking import chunk_text
+#from app.utils.embedding import get_embedding
+
+# ingestion-service/app/main.py
+
+from common.utils.chunking import chunk_text
+from common.utils.embedding import get_embedding
+
+
 import httpx
 import uuid
 import logging
