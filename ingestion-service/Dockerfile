@@ -13,6 +13,9 @@ RUN uv pip install --system --project ingestion-service  .
 # ✅ Verify uvicorn is installed and on $PATH
 RUN which uvicorn && uvicorn --version
 
+RUN uv pip list | grep multipart || echo "python-multipart NOT INSTALLED"
+
+
 COPY app/ ./app/
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
