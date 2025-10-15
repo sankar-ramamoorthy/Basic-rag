@@ -12,7 +12,7 @@ dependencies = [
   "tiktoken",
   "supabase",
   "openai"  ,
-  "python-multipart"
+  "python-multipart" # add this line
 ]
 
 

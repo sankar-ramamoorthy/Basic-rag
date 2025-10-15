@@ -9,7 +9,7 @@ dependencies = [
   "httpx",
   "python-dotenv",
   "openai",         # for OpenAI LLMs
-  "ollama" ,         # optional, for local LLMs
+  "ollama"  ,        # optional, for local LLMs
   "python-multipart" # add this line
 ]
 
