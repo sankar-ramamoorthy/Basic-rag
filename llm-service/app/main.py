@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Query
 from fastapi.responses import JSONResponse
 import os
 import openai
@@ -7,46 +7,95 @@ import logging
 
 app = FastAPI(title="LLM Service")
 
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")  # openai or ollama
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4")
-OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3")
+# ------------------------------------------------------------------------------
+# 🌐 Configuration
+# ------------------------------------------------------------------------------
+
+# Default provider from env or fallback
+DEFAULT_LLM_PROVIDER = os.getenv("LLM_PROVIDER", "ollama")
+
+# Ollama (local LLM) config
+OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://host.docker.internal:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "Qwen3:1.7b")
+
+# LM Studio / OpenAI-compatible config
+OPENAI_API_BASE = os.getenv("OPENAI_API_BASE", "http://host.docker.internal:1234/v1")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "not-needed")
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "Qwen3:1.7b-chat")
+
+# Configure OpenAI client (also works with LM Studio)
+openai.api_key = OPENAI_API_KEY
+openai.api_base = OPENAI_API_BASE
+
+# ------------------------------------------------------------------------------
+# 🧠 LLM Endpoint
+# ------------------------------------------------------------------------------
 
 @app.post("/generate")
-async def generate(req: Request):
+async def generate(
+    req: Request,
+    provider: str = Query(None, description="Optional LLM provider override")
+):
     try:
         body = await req.json()
-        context = body["context"]
-        query = body["query"]
+        context = body.get("context", "")
+        query = body.get("query", "")
 
+        # Select provider
+        active_provider = provider or DEFAULT_LLM_PROVIDER
+
+        # Build prompt
         prompt = f"Context:\n{context}\n\nQuestion:\n{query}"
 
-        if LLM_PROVIDER == "openai":
-            response = openai.ChatCompletion.create(
-                model=OPENAI_MODEL,
-                messages=[{"role": "user", "content": prompt}],
-                temperature=0.2
-            )
-            answer = response.choices[0].message["content"]
-        elif LLM_PROVIDER == "ollama":
+        # ────────────────────────────────
+        # 🐍 OLLAMA
+        # ────────────────────────────────
+        if active_provider == "ollama":
             async with httpx.AsyncClient() as client:
                 response = await client.post(
                     f"{OLLAMA_BASE_URL}/api/chat",
                     json={
                         "model": OLLAMA_MODEL,
                         "messages": [{"role": "user", "content": prompt}]
-                    }
+                    },
+                    timeout=30
                 )
+                response.raise_for_status()
                 answer = response.json()["message"]["content"]
-        else:
-            raise ValueError(f"Unsupported LLM_PROVIDER: {LLM_PROVIDER}")
 
-        return {"response": answer}
+        # ────────────────────────────────
+        # 🤖 LM STUDIO or OPENAI
+        # ────────────────────────────────
+        elif active_provider in ["lmstudio", "openai"]:
+            response = openai.ChatCompletion.create(
+                model=OPENAI_MODEL,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2
+            )
+            answer = response["choices"][0]["message"]["content"]
+
+        else:
+            raise ValueError(f"Unsupported LLM provider: {active_provider}")
+
+        return {
+            "provider": active_provider,
+            "model": OLLAMA_MODEL if active_provider == "ollama" else OPENAI_MODEL,
+            "response": answer.strip()
+        }
 
     except Exception as e:
         logging.exception("Error in /generate")
         return JSONResponse(status_code=500, content={"error": str(e)})
 
+# ------------------------------------------------------------------------------
+# ✅ Health Check
+# ------------------------------------------------------------------------------
+
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "provider": LLM_PROVIDER}
+    return {
+        "status": "ok",
+        "default_provider": DEFAULT_LLM_PROVIDER,
+        "ollama_model": OLLAMA_MODEL,
+        "openai_model": OPENAI_MODEL
+    }
