@@ -1,0 +1,98 @@
+version: "3.9"
+
+services:
+  ingestion:
+    build:
+      context: .
+      dockerfile: ingestion-service/Dockerfile
+    container_name: ingestion-service
+    ports: ["8001:8000"]
+    volumes:
+      - ./ingestion-service:/app
+      - ./common:/app/common
+    env_file: .env
+    networks: [ragnet]
+    restart: unless-stopped
+
+  vector-store:
+    build:
+      context: .
+      dockerfile: vector-store-service/Dockerfile
+    container_name: vector-store-service
+    ports: ["8002:8000"]
+    volumes:
+      - ./vector-store-service:/app
+      - ./common:/app/common
+    env_file: .env
+    networks: [ragnet]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  llm:
+    build:
+      context: .
+      dockerfile: llm-service/Dockerfile
+    container_name: llm-service
+    ports: ["8003:8000"]
+    volumes:
+      - ./llm-service:/app
+      - ./common:/app/common
+    env_file: .env
+    networks: [ragnet]
+    restart: unless-stopped
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: rag-orchestrator/Dockerfile
+    container_name: rag-orchestrator
+    ports: ["8004:8000"]
+    volumes:
+      - ./rag-orchestrator:/app
+      - ./common:/app/common
+    env_file: .env
+    depends_on:
+      ingestion:
+        condition: service_healthy
+      vector-store:
+        condition: service_healthy
+      llm:
+        condition: service_healthy
+    networks: [ragnet]
+    restart: unless-stopped
+
+  db:
+    image: supabase/postgres:15.1.0.117
+    container_name: supabase-db
+    ports: ["54322:5432"]
+    volumes:
+      - ./volumes/db:/var/lib/postgresql/data
+      - ./volumes/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    networks: [ragnet]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rest:
+    image: postgrest/postgrest:v10.1.1
+    container_name: supabase-rest
+    ports: ["3010:3000"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGRST_DB_URI: postgres://postgres:postgres@db:5432/postgres
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: your-anon-key
+    networks: [ragnet]
+
+networks:
+  ragnet:
+    driver: bridge
