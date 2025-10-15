@@ -10,7 +10,8 @@ dependencies = [
   "python-dotenv",
   "sentence-transformers",
   "tiktoken",
-  "supabase"
+  "supabase",
+  "openai"  
 ]
 
 
