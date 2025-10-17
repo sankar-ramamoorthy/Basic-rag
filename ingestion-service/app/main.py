@@ -30,7 +30,9 @@ async def ingest(file: UploadFile = File(...)):
         async with httpx.AsyncClient(timeout=10.0) as client:
             for chunk in chunks:
                 embedding = get_embedding(chunk)
-                await client.post("http://vector-store:8000/store", json={
+                #await client.post("http://vector-store:8000/store", json={  #Change the ingestion code to match the container name
+                await client.post("http://vector-store-service:8000/store", json={ #Changed the ingestion code to match the container name
+
                     "doc_id": doc_id,
                     "text": chunk,
                     "embedding": embedding,
