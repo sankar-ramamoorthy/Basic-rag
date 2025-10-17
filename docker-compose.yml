@@ -97,7 +97,8 @@ services:
       - "54322:5432"
     volumes:
       - ./volumes/db:/var/lib/postgresql/
-      - ./volumes/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./init/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    #  - ./volumes/db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro  #move to ./init directory , so we dont loose it in case we delete volumes directory
     environment:
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: postgres
