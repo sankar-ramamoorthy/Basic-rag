@@ -14,7 +14,7 @@ TABLE_NAME = "documents"
 async def store_vector(data: dict):
     text = data["text"]
     embedding = data["embedding"]
-    source = data.get("source", "")
+    source_name = data.get("source_name", "")
     doc_id = data.get("doc_id", None)  # Default to None if not provided
 
     embedding_str = "[" + ",".join([str(x) for x in embedding]) + "]"
@@ -26,16 +26,17 @@ async def store_vector(data: dict):
             CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
                 doc_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 text TEXT,
-                source TEXT,
-                embedding VECTOR(384)  -- Use 384 instead of 768
+                embedding VECTOR(384),  -- Use 384 instead of 768
+                source_name TEXT,
+                created_at TIMESTAMP DEFAULT NOW()
             );
             """)
 
             # Insert the data
             await cur.execute(f"""
-            INSERT INTO {TABLE_NAME} (doc_id, text, source, embedding)
+            INSERT INTO {TABLE_NAME} (doc_id, text,  embedding,source_name)
             VALUES (%s, %s, %s, %s)
-            """, (doc_id, text, source, embedding_str))
+            """, (doc_id, text, embedding_str, source_name))
 
             await conn.commit()
 
@@ -45,7 +46,7 @@ async def search_vectors(query_embedding, top_k=10):
     async with await psycopg.AsyncConnection.connect(DB_URL) as conn:
         async with conn.cursor() as cur:
             await cur.execute(f"""
-            SELECT doc_id, text, source,
+            SELECT doc_id, text, source_name,
                    1 - (embedding <#> %s::vector) AS score
             FROM {TABLE_NAME}
             ORDER BY embedding <#> %s::vector

@@ -12,7 +12,7 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 -- Create documents table
 CREATE TABLE IF NOT EXISTS documents (
-  doc_id SERIAL PRIMARY KEY,
+  doc_id SERIAL PRIMARY KEY  DEFAULT gen_random_uuid(),
   text TEXT NOT NULL,
   embedding VECTOR(384),
   source_name TEXT,
