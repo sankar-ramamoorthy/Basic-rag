@@ -15,7 +15,7 @@ async def store_vector(data: dict):
     text = data["text"]
     embedding = data["embedding"]
     source = data.get("source", "")
-    doc_id = data.get("doc_id")
+    doc_id = data.get("doc_id", None)  # Default to None if not provided
 
     embedding_str = "[" + ",".join([str(x) for x in embedding]) + "]"
 
@@ -24,14 +24,14 @@ async def store_vector(data: dict):
             # Create table if it doesn't exist (idempotent)
             await cur.execute(f"""
             CREATE TABLE IF NOT EXISTS {TABLE_NAME} (
-                id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-                doc_id TEXT,
+                doc_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 text TEXT,
                 source TEXT,
-                embedding VECTOR(768)
+                embedding VECTOR(384)  -- Use 384 instead of 768
             );
             """)
 
+            # Insert the data
             await cur.execute(f"""
             INSERT INTO {TABLE_NAME} (doc_id, text, source, embedding)
             VALUES (%s, %s, %s, %s)
