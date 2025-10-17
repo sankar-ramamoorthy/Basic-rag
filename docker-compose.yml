@@ -71,19 +71,19 @@ services:
     env_file: .env
     restart: unless-stopped
     networks: [ragnet]
-    depends_on:
-      ingestion:
-        condition: service_healthy
-      vector-store:
-        condition: service_healthy
-      llm:
-        condition: service_healthy
-    healthcheck:
-      #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
+    #depends_on:
+    #  ingestion:
+    #    condition: service_healthy
+    #  vector-store:
+    #    condition: service_healthy
+    #  llm:
+    #    condition: service_healthy
+    #healthcheck:
+    #  #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+    #  test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
+    #  interval: 10s
+    #  timeout: 5s
+    #  retries: 3
 
   ######################
   # 🗃️ Supabase Backend
