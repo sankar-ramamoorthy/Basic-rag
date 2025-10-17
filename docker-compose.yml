@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   ######################
   # 🚀 RAG Services
@@ -17,7 +15,8 @@ services:
     restart: unless-stopped
     networks: [ragnet]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -37,7 +36,8 @@ services:
       db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -54,7 +54,8 @@ services:
     restart: unless-stopped
     networks: [ragnet]
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -78,7 +79,8 @@ services:
       llm:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      #test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD-SHELL", "python -c 'import urllib.request; urllib.request.urlopen(\"http://localhost:8000/health\")' || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
