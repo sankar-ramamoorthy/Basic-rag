@@ -25,19 +25,19 @@ async def ingest(file: UploadFile = File(...)):
         chunks = chunk_text(raw_text)
 
         doc_id = str(uuid.uuid4())  # Unique document ID
-        source = file.filename
+        source_name = file.filename
 
         async with httpx.AsyncClient(timeout=10.0) as client:
             for chunk in chunks:
                 embedding = get_embedding(chunk)
                 await client.post("http://vector-store:8000/store", json={
+                    "doc_id": doc_id
                     "text": chunk,
                     "embedding": embedding,
-                    "source": source,
-                    "doc_id": doc_id
+                    "source_name": source_name,
                 })
 
-        logging.info(f"Ingested {len(chunks)} chunks from {source}")
+        logging.info(f"Ingested {len(chunks)} chunks from {source_name}")
 
         return {"status": "success", "chunks": len(chunks), "doc_id": doc_id}
 
