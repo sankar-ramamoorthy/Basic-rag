@@ -31,10 +31,10 @@ async def ingest(file: UploadFile = File(...)):
             for chunk in chunks:
                 embedding = get_embedding(chunk)
                 await client.post("http://vector-store:8000/store", json={
-                    "doc_id": doc_id
+                    "doc_id": doc_id,
                     "text": chunk,
                     "embedding": embedding,
-                    "source_name": source_name,
+                    "source_name": source_name
                 })
 
         logging.info(f"Ingested {len(chunks)} chunks from {source_name}")
