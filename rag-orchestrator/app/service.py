@@ -46,7 +46,7 @@ async def run_rag(query: str, top_k: int = 5, provider=None, model=None):
     if model:
         params["model"] = model
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=httpx.Timeout(240.0)) as client:
         llm_resp = await client.post(f"{LLM_SERVICE_URL}/generate", json=llm_payload, params=params)
         llm_resp.raise_for_status()
         llm_result = llm_resp.json()
