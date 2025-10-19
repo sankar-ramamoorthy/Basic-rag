@@ -1,10 +1,10 @@
-# api.py
-
-from fastapi import APIRouter, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
+from fastapi import APIRouter
 from pydantic import BaseModel
 from app.service import run_rag, search_documents
 from app.models import RAGQuery, RAGResponse, SearchQuery
 import logging
+
 
 router = APIRouter()
 
@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # /search endpoint to get vector search results without invoking the LLM
-@router.post("/search")
+@app.post("/search")
 async def search_endpoint(query: SearchQuery):
     logger.debug(f"Received search query: {query}")
     
@@ -27,7 +27,7 @@ async def search_endpoint(query: SearchQuery):
         raise HTTPException(status_code=500, detail="An error occurred during the search.")
 
 # /rag endpoint to run the full RAG (retrieval-augmented generation) process
-@router.post("/rag", response_model=RAGResponse)
+@app.post("/rag", response_model=RAGResponse)
 async def rag_endpoint(rag_query: RAGQuery):
     logger.debug(f"Received RAG query: {rag_query}")
     
